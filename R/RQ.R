@@ -29,30 +29,39 @@ library(ggplot2)
 #' plots <- plotRespondents(data = mpg, titles = ids)
 #'
 #' @export
-plotRespondents <- function(data, titles = NULL) {
+plotRespondents <- function(data, id.var = NULL) {
   UseMethod("plotRespondents", data)
 }
 
 #' @export
-plotRespondents.data.table <- function(data, titles = NULL) {
-  lapply(1:nrow(data), function(index){
-    title <- index
-    if(!is.null(titles)) {
-      title <- titles[index]
+plotRespondents.data.table <- function(data, id.var) {
+  if(missing(id.var)) {
+    stop("No identity variable specified")
+  } else {
+    if(is.null(data[[id.var]])) {
+      stop("id.var not in dataset")
     }
-    plotRespondent(index, data, title = title)
-  })
+  }
+
+  Map(f = function(id){
+    plotRespondent(data[data[[id.var]] == id,], title = id)
+  }, data[[id.var]])
+
 }
 
 #' @export
-plotRespondents.data.frame <- function(data, titles = NULL) {
-  lapply(1:nrow(data), function(index){
-    title <- index
-    if(!is.null(titles)) {
-      title <- titles[index]
+plotRespondents.data.frame <- function(data, id.var) {
+  if(missing(id.var)) {
+    stop("No identity variable specified")
+  } else {
+    if(is.null(data[[id.var]])) {
+      stop("id.var not in dataset")
     }
-    plotRespondent(index, data, title = title)
-  })
+  }
+
+  Map(f = function(id){
+    plotRespondent(data[data[[id.var]] == id,], title = id)
+  }, data[[id.var]])
 }
 
 #' Returns a plot for the respondent at \code{index} of \code{data}
@@ -67,21 +76,21 @@ plotRespondents.data.frame <- function(data, titles = NULL) {
 #' plot <- plotRespondent(index = 1, data = mpg, title = ids[1])
 #'
 #' @export
-plotRespondent <- function(index, data, title = index) {
+plotRespondent <- function(data, title = index) {
   UseMethod("plotRespondent", data)
 }
 
 #' @export
-plotRespondent.data.table <- function(index, data, title = index) {
+plotRespondent.data.table <- function(data, title = index) {
 
-  plotRespondent.data.frame(index, as.data.frame(data), title = index)
+  plotRespondent.data.frame(as.data.frame(data), title = index)
 
 }
 
 #' @export
-plotRespondent.data.frame <- function(index, dataset, title = index) {
+plotRespondent.data.frame <- function(dataset, title = index) {
 
-  data <- data.frame(response = t(dataset[index, ])[,1])
+  data <- data.frame(response = t(dataset)[,1])
 
   #colnames(data) <- index
   data$x <- rownames(data)
