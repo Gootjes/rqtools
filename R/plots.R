@@ -39,7 +39,7 @@ plotRespondents.data.frame <- function(data, id.var) {
   }
 
   Map(f = function(id){
-    plotRespondent(data[data[[id.var]] == id,], title = id)
+    plotRespondent(data[data[[id.var]] == id,-which(names(data) == id.var)], title = id)
   }, data[[id.var]])
 }
 
