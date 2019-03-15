@@ -1,4 +1,4 @@
-Package: RQtools
+Package: rqtools
 Type: Package
 Title: Functions and utilities for response quality analysis.
 Version: 1.0.0
