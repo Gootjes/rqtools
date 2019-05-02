@@ -1,46 +1,44 @@
 
 library(ggplot2)
 
-#' @title Return plots for all respondents in \code{data}
+#' @title Return plots for all respondents in \code{x}
 #'
-#' @param data A dataset that contains all variables and respondents to be plotted.
-#' @param titles A vector of titles that should be given to the plots. Can be \code{null}. See examples.
 #' @return A ggplot
 #'
 #' @export
-plotRespondents <- function(data, id.var = NULL) {
-  UseMethod("plotRespondents", data)
+plot_respondents <- function(x, id.var = NULL) {
+  UseMethod("plot_respondents", x)
 }
 
-#' #' @export
-#' plotRespondents.data.table <- function(data, id.var) {
-#'   if(missing(id.var)) {
-#'     stop("No identity variable specified")
-#'   } else {
-#'     if(is.null(data[[id.var]])) {
-#'       stop("id.var not in dataset")
-#'     }
-#'   }
-#'
-#'   Map(f = function(id){
-#'     plotRespondent(data[data[[id.var]] == id,], title = id)
-#'   }, data[[id.var]])
-#'
-#' }
-
 #' @export
-plotRespondents.data.frame <- function(data, id.var) {
-  if(missing(id.var)) {
-    stop("No identity variable specified")
+plot_respondents.data.frame <- function(x, id.var = NULL) {
+  if(is.null(id.var)) {
+    ids <- 1:nrow(x)
   } else {
-    if(is.null(data[[id.var]])) {
-      stop("id.var not in dataset")
+    if(length(id.var) == 1) {
+      if(is.numeric(id.var)) {
+        if(id.var > ncol(x)) {
+          stop("id.var refers to an unidentified column")
+        }
+      } else if(is.character(id.var)) {
+        if(!(id.var %in% colnames(x))) {
+          stop("id.var refers to an unidentified column")
+        }
+      } else {
+        stop("id.var is of unknown type")
+      }
+      ids <- x[[id.var]]
+      x[[id.var]] <- NULL
+    } else if(length(id.var) == nrow(x)) {
+      ids <- id.var
+    } else {
+      stop("id.var must either be of length one, or of the same length as the amount of rows in x")
     }
   }
 
-  Map(f = function(id){
-    plotRespondent(data[data[[id.var]] == id,-which(names(data) == id.var)], title = id)
-  }, data[[id.var]])
+  setNames(Map(f = function(rowi){
+    plot_respondent(x[rowi,], title = ids[rowi])
+  }, 1:nrow(x)), ids)
 }
 
 #' @title Returns a plot for the respondent at \code{index} of \code{data}
@@ -51,19 +49,12 @@ plotRespondents.data.frame <- function(data, id.var) {
 #' @return A ggplot
 #'
 #' @export
-plotRespondent <- function(data, title = index) {
-  UseMethod("plotRespondent", data)
+plot_respondent <- function(data, title = NULL) {
+  UseMethod("plot_respondent", data)
 }
 
-#' #' @export
-#' plotRespondent.data.table <- function(data, title = index) {
-#'
-#'   plotRespondent.data.frame(as.data.frame(data), title = index)
-#'
-#' }
-
 #' @export
-plotRespondent.data.frame <- function(dataset, title = index) {
+plot_respondent.data.frame <- function(dataset, title = NULL) {
 
   data <- data.frame(response = t(dataset)[,1])
 
@@ -75,7 +66,8 @@ plotRespondent.data.frame <- function(dataset, title = index) {
     geom_line(aes(y=response, group = 1)) +
     theme_classic() +
     theme(axis.text.x = element_text(angle=90, vjust=0.6), legend.position = "none") +
-    labs(x = title, y = "responses")
+    labs(title = title, y = "responses", x = "variables",
+         subtitle = paste("Flatline score:", round(compute_flatline_score(unlist(c(data$response))), 2)))
 
   g
 }

@@ -1,8 +1,8 @@
 Package: rqtools
 Type: Package
 Title: Functions and utilities for response quality analysis.
-Version: 1.0.1
-Author: Frank Gootjes
+Version: 2.0.0
+Author: Gootjes
 Description: Includes functions to plot responses in a graph to check for extreme scoring etc.
     Also includes a function to compute a score that indicates similar responses.
 License: MIT
